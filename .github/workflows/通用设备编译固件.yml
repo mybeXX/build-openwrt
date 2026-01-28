@@ -19,7 +19,7 @@ on:
           - lede-master
           - immortalwrt-master
           - Lienol-master
-      
+
 env:
   FEEDS_CONF: config/${{ inputs.source_branch }}/feeds.conf.default
   CONFIG_FILE: config/${{ inputs.source_branch }}/config
@@ -34,6 +34,10 @@ jobs:
   build:
     runs-on: ubuntu-22.04
     if: github.event.repository.owner.id == github.event.sender.id
+    
+    # 显式声明权限，防止 Release 写入失败
+    permissions:
+      contents: write
 
     steps:
       - name: Checkout
@@ -44,7 +48,6 @@ jobs:
         env:
           DEBIAN_FRONTEND: noninteractive
         run: |
-          # 使用 prune 替代 rmi 避免无镜像时报错
           docker image prune -a -f
           [[ -n "${AGENT_TOOLSDIRECTORY}" ]] && sudo rm -rf "${AGENT_TOOLSDIRECTORY}"
           sudo rm -rf /usr/share/dotnet /etc/apt/sources.list.d /usr/local/lib/android 2>/dev/null
@@ -138,18 +141,21 @@ jobs:
         id: tag
         if: env.UPLOAD_RELEASE == 'true' && steps.organize.outputs.status == 'success' && !cancelled()
         run: |
-          echo "release_tag=$(date +"%Y.%m.%d-%H%M")" >> $GITHUB_OUTPUT
+          # 修正 Tag 生成逻辑
+          R_TAG=$(date +"%Y.%m.%d-%H%M")
+          echo "release_tag=$R_TAG" >> $GITHUB_OUTPUT
           touch release.txt
-          echo "Default IP: 10.0.0.1" >> release.txt
-          echo "Default Password: none" >> release.txt
+          echo "### 固件发布信息" >> release.txt
+          echo "- **默认 IP:** 10.0.0.1" >> release.txt
+          echo "- **默认密码:** none" >> release.txt
+          echo "- **编译时间:** $(date +'%Y-%m-%d %H:%M:%S')" >> release.txt
           echo "status=success" >> $GITHUB_OUTPUT
 
       - name: Upload firmware to release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         if: steps.tag.outputs.status == 'success' && !cancelled()
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ steps.tag.outputs.release_tag }}
           body_path: release.txt
           files: ${{ env.FIRMWARE }}/*
+          token: ${{ secrets.GITHUB_TOKEN }}
