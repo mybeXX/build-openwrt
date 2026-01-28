@@ -8,25 +8,25 @@
 
 # ------------------------------- Main source started -------------------------------
 #
-# Add the default password for the 'root' user（Change the empty password to 'password'）
+# 修改默认密码为 'password'
 sed -i 's/root:::0:99999:7:::/root:$1$V4UetPzk$CYXluq4wUazHjmCDBCqXF.::0:99999:7:::/g' package/base-files/files/etc/shadow
 
-# Set etc/openwrt_release
+# 设置 etc/openwrt_release (自定义版本显示)
 sed -i "s|DISTRIB_REVISION='.*'|DISTRIB_REVISION='R$(date +%Y.%m.%d)'|g" package/base-files/files/etc/openwrt_release
 echo "DISTRIB_SOURCECODE='immortalwrt'" >>package/base-files/files/etc/openwrt_release
 
-# Modify default IP（FROM 192.168.1.1 CHANGE TO 192.168.31.4）
-# sed -i 's/192.168.1.1/192.168.31.4/g' package/base-files/files/bin/config_generate
-#
+# 修改默认 IP 为 10.0.0.1
+sed -i 's/192.168.1.1/10.0.0.1/g' package/base-files/files/bin/config_generate
+
 # ------------------------------- Main source ends -------------------------------
 
 # ------------------------------- Other started -------------------------------
 #
-# Add luci-app-amlogic
+# 添加 luci-app-amlogic (晶晨盒子工具)
 svn co https://github.com/ophub/luci-app-amlogic/trunk/luci-app-amlogic package/luci-app-amlogic
 
-# Apply patch
-# git apply ../config/patches/{0001*,0002*}.patch --directory=feeds/luci
-#
-# ------------------------------- Other ends -------------------------------
+# 添加 TurboACC 插件
+# 该脚本会自动下载源码、处理依赖关系并修补相关文件以适配 fw4/fw3
+curl -sSL https://raw.githubusercontent.com/mufeng05/turboacc/main/add_turboacc.sh -o add_turboacc.sh && bash add_turboacc.sh
 
+# ------------------------------- Other ends -------------------------------
