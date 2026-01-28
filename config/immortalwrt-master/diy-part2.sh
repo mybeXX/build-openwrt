@@ -23,7 +23,7 @@ sed -i 's/192.168.1.1/10.0.0.1/g' package/base-files/files/bin/config_generate
 # ------------------------------- Other started -------------------------------
 #
 # 添加 luci-app-amlogic (晶晨盒子工具)
-svn co https://github.com/ophub/luci-app-amlogic/trunk/luci-app-amlogic package/luci-app-amlogic
+# svn co https://github.com/ophub/luci-app-amlogic/trunk/luci-app-amlogic package/luci-app-amlogic
 
 # 添加 TurboACC 插件
 # 该脚本会自动下载源码、处理依赖并适配防火墙环境
